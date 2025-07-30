@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35825.156 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PwaTest", "PwaTest\PwaTest.csproj", "{307757D3-F561-4DCE-BF87-B487D01934CB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{307757D3-F561-4DCE-BF87-B487D01934CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{307757D3-F561-4DCE-BF87-B487D01934CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{307757D3-F561-4DCE-BF87-B487D01934CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{307757D3-F561-4DCE-BF87-B487D01934CB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0A265F3C-F21B-4403-9170-552E5741E1C7}
+	EndGlobalSection
+EndGlobal
