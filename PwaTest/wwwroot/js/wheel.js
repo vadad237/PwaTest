@@ -50,7 +50,7 @@ window.wheel = (function () {
                     requestAnimationFrame(frame);
                 } else {
                     const arc = 2 * Math.PI / names.length;
-                    const offset = (Math.PI / 2 - (angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                    const offset = (3 * Math.PI / 2 - (angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
                     const index = Math.floor(offset / arc);
                     resolve(names[index]);
                 }
