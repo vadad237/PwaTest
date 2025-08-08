@@ -27,9 +27,9 @@ window.wheel = (function () {
         }
         ctx.fillStyle = '#000';
         ctx.beginPath();
-        ctx.moveTo(radius, 0);
-        ctx.lineTo(radius - 10, 20);
-        ctx.lineTo(radius + 10, 20);
+        ctx.moveTo(radius, 20);
+        ctx.lineTo(radius - 10, 0);
+        ctx.lineTo(radius + 10, 0);
         ctx.closePath();
         ctx.fill();
     }
@@ -50,8 +50,8 @@ window.wheel = (function () {
                     requestAnimationFrame(frame);
                 } else {
                     const arc = 2 * Math.PI / names.length;
-                    const current = (2 * Math.PI - (angle % (2 * Math.PI))) % (2 * Math.PI);
-                    const index = Math.floor(current / arc);
+                    const offset = (Math.PI / 2 - (angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                    const index = Math.floor(offset / arc);
                     resolve(names[index]);
                 }
             }
