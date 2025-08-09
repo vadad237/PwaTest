@@ -19,6 +19,15 @@
         <div class="mt-3 d-flex gap-2">
             <button class="btn btn-success" @onclick="Spin">Spin</button>
             <button class="btn btn-secondary" @onclick="SaveCurrentStudents">Save</button>
+            <div class="btn-group">
+                <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    Export
+                </button>
+                <ul class="dropdown-menu">
+                    <li><button type="button" class="dropdown-item" @onclick="ExportCsv">CSV</button></li>
+                    <li><button type="button" class="dropdown-item" @onclick="ExportExcel">Excel</button></li>
+                </ul>
+            </div>
         </div>
 
         @if (!string.IsNullOrEmpty(winner))
@@ -204,6 +213,26 @@
         await LoadHistory();
         await JS.InvokeVoidAsync("wheel.hideSaveModal");
         saveLabel = string.Empty;
+    }
+
+    private async Task ExportCsv()
+    {
+        if (students.Count == 0)
+        {
+            return;
+        }
+
+        await JS.InvokeVoidAsync("wheel.exportCsv", students);
+    }
+
+    private async Task ExportExcel()
+    {
+        if (students.Count == 0)
+        {
+            return;
+        }
+
+        await JS.InvokeVoidAsync("wheel.exportExcel", students);
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)

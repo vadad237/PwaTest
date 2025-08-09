@@ -142,7 +142,37 @@ window.wheel = (function () {
         });
     }
 
+    function exportCsv(names) {
+        if (!names || names.length === 0) return;
+        const blob = new Blob([names.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'wheel-data.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function exportExcel(names) {
+        if (!names || names.length === 0 || typeof XLSX === 'undefined') return;
+        const ws = XLSX.utils.aoa_to_sheet(names.map(n => [n]));
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Wheel');
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([wbout], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'wheel-data.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
     window.addEventListener('resize', () => draw());
 
-    return { draw, spin, showWinnerModal, hideWinnerModal, showSaveModal, hideSaveModal, saveHistory, getHistory };
+    return { draw, spin, showWinnerModal, hideWinnerModal, showSaveModal, hideSaveModal, saveHistory, getHistory, exportCsv, exportExcel };
 })();
