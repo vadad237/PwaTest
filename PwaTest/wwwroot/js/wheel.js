@@ -10,7 +10,9 @@ window.wheel = (function () {
         const canvas = document.getElementById('wheelCanvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        const size = Math.min(canvas.parentElement.clientWidth, 600);
+        const container = canvas.parentElement ? canvas.parentElement.parentElement : null;
+        const containerWidth = container ? container.clientWidth : window.innerWidth;
+        const size = Math.min(containerWidth, 600);
         canvas.width = size;
         canvas.height = size;
         const radius = size / 2;
