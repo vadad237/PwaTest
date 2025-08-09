@@ -10,7 +10,7 @@ window.wheel = (function () {
         const canvas = document.getElementById('wheelCanvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        const size = Math.min(canvas.parentElement.clientWidth, 300);
+        const size = Math.min(canvas.parentElement.clientWidth, 600);
         canvas.width = size;
         canvas.height = size;
         const radius = size / 2;
@@ -29,15 +29,18 @@ window.wheel = (function () {
             ctx.rotate(angle + i * arc + arc / 2);
             ctx.textAlign = 'right';
             ctx.fillStyle = '#000';
-            ctx.font = '16px sans-serif';
-            ctx.fillText(currentNames[i], radius - 10, 10);
+            const fontSize = Math.max(16, radius * 0.1067);
+            ctx.font = `${fontSize}px sans-serif`;
+            ctx.fillText(currentNames[i], radius - 10, radius * 0.0667);
             ctx.restore();
         }
         ctx.fillStyle = '#000';
         ctx.beginPath();
-        ctx.moveTo(radius, 20);
-        ctx.lineTo(radius - 10, 0);
-        ctx.lineTo(radius + 10, 0);
+        const arrowHeight = radius * 0.0667;
+        const arrowHalfWidth = radius * 0.0333;
+        ctx.moveTo(radius, arrowHeight);
+        ctx.lineTo(radius - arrowHalfWidth, 0);
+        ctx.lineTo(radius + arrowHalfWidth, 0);
         ctx.closePath();
         ctx.fill();
     }
