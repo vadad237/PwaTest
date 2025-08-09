@@ -2,6 +2,7 @@
 @page "/"
 @using System.Text.Json.Serialization
 @using System.Linq
+@using Microsoft.AspNetCore.Components
 
 <PageTitle>Wheel of Luck</PageTitle>
 
@@ -25,24 +26,8 @@
             <p class="mt-3"><strong>Winner: @winner</strong></p>
         }
 
-        <div class="mt-4 w-100">
-            <h5>Saved Sets</h5>
-            @if (savedSets.Count > 0)
-            {
-                <ul class="list-group">
-                    @foreach (var set in savedSets)
-                    {
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            @set.Label
-                            <button class="btn btn-sm btn-primary" @onclick="() => LoadSavedSet(set)">Load</button>
-                        </li>
-                    }
-                </ul>
-            }
-            else
-            {
-                <p class="text-muted">No sets saved yet.</p>
-            }
+        <div class="mt-4 w-100 d-none d-md-block">
+            @SavedSetsSection
         </div>
     </div>
 
@@ -65,6 +50,10 @@
         {
             <p class="text-muted">No items added yet.</p>
         }
+
+        <div class="mt-4 w-100 d-block d-md-none">
+            @SavedSetsSection
+        </div>
     </div>
 </div>
 
@@ -110,6 +99,26 @@
     private string? winner;
     private string? saveLabel;
     private List<SavedSet> savedSets = new();
+
+    private RenderFragment SavedSetsSection => @<div>
+        <h5>Saved Sets</h5>
+        @if (savedSets.Count > 0)
+        {
+            <ul class="list-group">
+                @foreach (var set in savedSets)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        @set.Label
+                        <button class="btn btn-sm btn-primary" @onclick="() => LoadSavedSet(set)">Load</button>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="text-muted">No sets saved yet.</p>
+        }
+    </div>;
 
     [Inject] private IJSRuntime JS { get; set; } = default!;
 
