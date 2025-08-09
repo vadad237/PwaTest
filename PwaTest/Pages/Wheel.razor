@@ -23,16 +23,19 @@
 
     @if (students.Count > 0)
     {
-        <ul class="list-group ms-md-3 mt-3 mt-md-0 w-100">
-            @for (int i = 0; i < students.Count; i++)
-            {
-                var index = i;
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    @students[index]
-                    <button type="button" class="btn-close" aria-label="Remove" @onclick="() => RemoveStudent(index)"></button>
-                </li>
-            }
-        </ul>
+        <div class="ms-md-3 mt-3 mt-md-0 w-100">
+            <h5>Added Items</h5>
+            <ul class="list-group">
+                @for (int i = 0; i < students.Count; i++)
+                {
+                    var index = i;
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        @students[index]
+                        <button type="button" class="btn-close" aria-label="Remove" @onclick="() => RemoveStudent(index)"></button>
+                    </li>
+                }
+            </ul>
+        </div>
     }
 </div>
 
