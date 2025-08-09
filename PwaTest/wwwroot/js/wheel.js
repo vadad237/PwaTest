@@ -102,16 +102,20 @@ window.wheel = (function () {
         });
     }
 
-    function saveHistory(names) {
-        if (!names || names.length === 0) return Promise.resolve();
+    function saveHistory(names, label) {
+        if (!names || names.length === 0 || !label) return Promise.resolve();
         return openDb().then(db => {
             return new Promise((resolve, reject) => {
                 const tx = db.transaction('history', 'readwrite');
-                tx.objectStore('history').add({ names, savedAt: new Date() });
+                tx.objectStore('history').add({ label, names, savedAt: new Date() });
                 tx.oncomplete = () => { db.close(); resolve(); };
                 tx.onerror = () => { db.close(); reject(tx.error); };
             });
         });
+    }
+
+    function promptForName() {
+        return prompt('Enter a name for this set:');
     }
 
     function getHistory() {
@@ -128,5 +132,5 @@ window.wheel = (function () {
 
     window.addEventListener('resize', () => draw());
 
-    return { draw, spin, showWinnerModal, hideWinnerModal, saveHistory, getHistory };
+    return { draw, spin, showWinnerModal, hideWinnerModal, saveHistory, getHistory, promptForName };
 })();

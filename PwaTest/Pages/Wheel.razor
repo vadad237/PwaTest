@@ -121,7 +121,11 @@
             return;
         }
 
-        await JS.InvokeVoidAsync("wheel.saveHistory", students);
+        var label = await JS.InvokeAsync<string>("wheel.promptForName");
+        if (!string.IsNullOrWhiteSpace(label))
+        {
+            await JS.InvokeVoidAsync("wheel.saveHistory", students, label);
+        }
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
