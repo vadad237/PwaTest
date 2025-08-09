@@ -142,37 +142,39 @@ window.wheel = (function () {
         });
     }
 
-    function exportCsv(names) {
-        if (!names || names.length === 0) return;
-        const blob = new Blob([names.join('\n')], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'wheel-data.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-
-    function exportExcel(names) {
-        if (!names || names.length === 0 || typeof XLSX === 'undefined') return;
-        const ws = XLSX.utils.aoa_to_sheet(names.map(n => [n]));
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Wheel');
-        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-        const blob = new Blob([wbout], { type: 'application/octet-stream' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'wheel-data.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+    function importFile(dotNetHelper) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel';
+        input.onchange = e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                let names = [];
+                if (file.name.toLowerCase().endsWith('.csv')) {
+                    const text = ev.target.result;
+                    names = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+                } else if (typeof XLSX !== 'undefined') {
+                    const data = new Uint8Array(ev.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    names = rows.map(r => r[0]).filter(Boolean);
+                }
+                dotNetHelper.invokeMethodAsync('ReceiveImported', names);
+                input.remove();
+            };
+            if (file.name.toLowerCase().endsWith('.csv')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        };
+        input.click();
     }
 
     window.addEventListener('resize', () => draw());
 
-    return { draw, spin, showWinnerModal, hideWinnerModal, showSaveModal, hideSaveModal, saveHistory, getHistory, exportCsv, exportExcel };
+    return { draw, spin, showWinnerModal, hideWinnerModal, showSaveModal, hideSaveModal, saveHistory, getHistory, importFile };
 })();
