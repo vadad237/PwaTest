@@ -1,6 +1,26 @@
 window.wheel = (function () {
     let angle = 0;
     let currentNames = [];
+    let idleId = null;
+
+    function startIdle() {
+        if (idleId || !currentNames || currentNames.length === 0) return;
+        function step() {
+            angle += 0.002;
+            draw();
+            if (idleId) {
+                idleId = requestAnimationFrame(step);
+            }
+        }
+        idleId = requestAnimationFrame(step);
+    }
+
+    function stopIdle() {
+        if (idleId) {
+            cancelAnimationFrame(idleId);
+            idleId = null;
+        }
+    }
 
     function draw(names, resetAngle) {
         currentNames = names !== undefined ? names : currentNames;
@@ -17,7 +37,11 @@ window.wheel = (function () {
         canvas.height = size;
         const radius = size / 2;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (!currentNames || currentNames.length === 0) return;
+        if (!currentNames || currentNames.length === 0) {
+            stopIdle();
+            return;
+        }
+        startIdle();
         const arc = 2 * Math.PI / currentNames.length;
         for (let i = 0; i < currentNames.length; i++) {
             ctx.beginPath();
@@ -49,6 +73,7 @@ window.wheel = (function () {
 
     function spin(names) {
         if (!names || names.length === 0) return '';
+        stopIdle();
         return new Promise(resolve => {
             const total = Math.random() * 2 * Math.PI + 10 * 2 * Math.PI;
             const startAngle = angle;
@@ -66,6 +91,7 @@ window.wheel = (function () {
                     const offset = (3 * Math.PI / 2 - (angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
                     const index = Math.floor(offset / arc);
                     resolve(names[index]);
+                    startIdle();
                 }
             }
             requestAnimationFrame(frame);
