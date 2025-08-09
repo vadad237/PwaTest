@@ -88,6 +88,22 @@ window.wheel = (function () {
         }
     }
 
+    function showSaveModal() {
+        const modalEl = document.getElementById('saveModal');
+        if (!modalEl) return;
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+
+    function hideSaveModal() {
+        const modalEl = document.getElementById('saveModal');
+        if (!modalEl) return;
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) {
+            modal.hide();
+        }
+    }
+
     function openDb() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open('wheelHistory', 1);
@@ -114,10 +130,6 @@ window.wheel = (function () {
         });
     }
 
-    function promptForName() {
-        return prompt('Enter a name for this set:');
-    }
-
     function getHistory() {
         return openDb().then(db => {
             return new Promise((resolve, reject) => {
@@ -132,5 +144,5 @@ window.wheel = (function () {
 
     window.addEventListener('resize', () => draw());
 
-    return { draw, spin, showWinnerModal, hideWinnerModal, saveHistory, getHistory, promptForName };
+    return { draw, spin, showWinnerModal, hideWinnerModal, showSaveModal, hideSaveModal, saveHistory, getHistory };
 })();

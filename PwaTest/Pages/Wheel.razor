@@ -64,10 +64,29 @@
     </div>
 </div>
 
+<div class="modal fade" id="saveModal" tabindex="-1" aria-labelledby="saveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="saveModalLabel">Save Current Set</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input class="form-control" @bind="saveLabel" placeholder="Set name" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" @onclick="ConfirmSave">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @code {
     private string? newStudent;
     private List<string> students = new() { "Item 1", "Item 2", "Item 3", "Item 4" };
     private string? winner;
+    private string? saveLabel;
 
     [Inject] private IJSRuntime JS { get; set; } = default!;
 
@@ -121,11 +140,20 @@
             return;
         }
 
-        var label = await JS.InvokeAsync<string>("wheel.promptForName");
-        if (!string.IsNullOrWhiteSpace(label))
+        saveLabel = string.Empty;
+        await JS.InvokeVoidAsync("wheel.showSaveModal");
+    }
+
+    private async Task ConfirmSave()
+    {
+        if (string.IsNullOrWhiteSpace(saveLabel))
         {
-            await JS.InvokeVoidAsync("wheel.saveHistory", students, label);
+            return;
         }
+
+        await JS.InvokeVoidAsync("wheel.saveHistory", students, saveLabel);
+        await JS.InvokeVoidAsync("wheel.hideSaveModal");
+        saveLabel = string.Empty;
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
