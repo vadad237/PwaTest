@@ -45,7 +45,7 @@
     {
         if (firstRender)
         {
-            await JS.InvokeVoidAsync("wheel.draw", students);
+            await JS.InvokeVoidAsync("wheel.draw", students, true);
         }
     }
 
@@ -56,7 +56,7 @@
             students.Add(newStudent.Trim());
             newStudent = string.Empty;
             winner = null;
-            await JS.InvokeVoidAsync("wheel.draw", students);
+            await JS.InvokeVoidAsync("wheel.draw", students, true);
             StateHasChanged();
         }
     }
@@ -67,7 +67,7 @@
         {
             students.RemoveAt(index);
             winner = null;
-            await JS.InvokeVoidAsync("wheel.draw", students);
+            await JS.InvokeVoidAsync("wheel.draw", students, true);
             StateHasChanged();
         }
     }

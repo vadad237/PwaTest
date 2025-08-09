@@ -2,8 +2,11 @@ window.wheel = (function () {
     let angle = 0;
     let currentNames = [];
 
-    function draw(names) {
-        currentNames = names || currentNames;
+    function draw(names, resetAngle) {
+        currentNames = names !== undefined ? names : currentNames;
+        if (resetAngle) {
+            angle = 0;
+        }
         const canvas = document.getElementById('wheelCanvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
