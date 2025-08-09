@@ -162,6 +162,11 @@ window.wheel = (function () {
                     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     names = rows.map(r => r[0]).filter(Boolean);
                 }
+
+                if (names.length && names[0].toLowerCase() === 'name') {
+                    names.shift();
+                }
+
                 dotNetHelper.invokeMethodAsync('ReceiveImported', names);
                 input.remove();
             };
