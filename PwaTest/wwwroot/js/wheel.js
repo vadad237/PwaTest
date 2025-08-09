@@ -2,9 +2,10 @@ window.wheel = (function () {
     let angle = 0;
     let currentNames = [];
     let idleId = null;
+    let hasSpun = false;
 
     function startIdle() {
-        if (idleId || !currentNames || currentNames.length === 0) return;
+        if (idleId || !currentNames || currentNames.length === 0 || hasSpun) return;
         function step() {
             angle += 0.002;
             draw();
@@ -74,6 +75,7 @@ window.wheel = (function () {
     function spin(names) {
         if (!names || names.length === 0) return '';
         stopIdle();
+        hasSpun = true;
         return new Promise(resolve => {
             const total = Math.random() * 2 * Math.PI + 10 * 2 * Math.PI;
             const startAngle = angle;
@@ -91,7 +93,6 @@ window.wheel = (function () {
                     const offset = (3 * Math.PI / 2 - (angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
                     const index = Math.floor(offset / arc);
                     resolve(names[index]);
-                    startIdle();
                 }
             }
             requestAnimationFrame(frame);
