@@ -21,10 +21,10 @@
         }
     </div>
 
-    @if (students.Count > 0)
-    {
-        <div class="ms-md-3 mt-3 mt-md-0 w-100">
-            <h5>Added Items</h5>
+    <div class="ms-md-3 mt-3 mt-md-0 w-100">
+        <h5>Added Items</h5>
+        @if (students.Count > 0)
+        {
             <ul class="list-group">
                 @for (int i = 0; i < students.Count; i++)
                 {
@@ -35,8 +35,12 @@
                     </li>
                 }
             </ul>
-        </div>
-    }
+        }
+        else
+        {
+            <p class="text-muted">No items added yet.</p>
+        }
+    </div>
 </div>
 
 <div class="modal fade" id="winnerModal" tabindex="-1" aria-labelledby="winnerModalLabel" aria-hidden="true">
