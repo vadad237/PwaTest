@@ -10,7 +10,9 @@ window.wheel = (function () {
         const canvas = document.getElementById('wheelCanvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        const size = Math.min(canvas.parentElement.clientWidth, 600);
+        const container = canvas.parentElement ? canvas.parentElement.parentElement : null;
+        const containerWidth = container ? container.clientWidth : window.innerWidth;
+        const size = Math.min(containerWidth, 600);
         canvas.width = size;
         canvas.height = size;
         const radius = size / 2;
@@ -86,7 +88,125 @@ window.wheel = (function () {
         }
     }
 
+    function showSaveModal() {
+        const modalEl = document.getElementById('saveModal');
+        if (!modalEl) return;
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+
+    function hideSaveModal() {
+        const modalEl = document.getElementById('saveModal');
+        if (!modalEl) return;
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) {
+            modal.hide();
+        }
+    }
+
+    function openDb() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('wheelHistory', 1);
+            request.onupgradeneeded = () => {
+                const db = request.result;
+                if (!db.objectStoreNames.contains('history')) {
+                    db.createObjectStore('history', { autoIncrement: true });
+                }
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    function saveHistory(names, label) {
+        if (!names || names.length === 0 || !label) return Promise.resolve();
+        return openDb().then(db => {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('history', 'readwrite');
+                tx.objectStore('history').add({ label, names, savedAt: new Date() });
+                tx.oncomplete = () => { db.close(); resolve(); };
+                tx.onerror = () => { db.close(); reject(tx.error); };
+            });
+        });
+    }
+
+    function getHistory() {
+        return openDb().then(db => {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('history', 'readonly');
+                const store = tx.objectStore('history');
+                const request = store.getAll();
+                request.onsuccess = () => { db.close(); resolve(request.result); };
+                request.onerror = () => { db.close(); reject(request.error); };
+            });
+        });
+    }
+
+    function importFile(dotNetHelper) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel';
+        input.onchange = e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                let names = [];
+                if (file.name.toLowerCase().endsWith('.csv')) {
+                    const text = ev.target.result;
+                    names = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+                } else if (typeof XLSX !== 'undefined') {
+                    const data = new Uint8Array(ev.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    names = rows.map(r => r[0]).filter(Boolean);
+                }
+                dotNetHelper.invokeMethodAsync('ReceiveImported', names);
+                input.remove();
+            };
+            if (file.name.toLowerCase().endsWith('.csv')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        };
+        input.click();
+    }
+
+    function downloadCsvTemplate() {
+        const content = ['Name', 'Item 1', 'Item 2', 'Item 3', 'Item 4'].join('\n');
+        const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'import-template.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function downloadExcelTemplate() {
+        if (typeof XLSX === 'undefined') return;
+        const ws = XLSX.utils.aoa_to_sheet([
+            ['Name'],
+            ['Item 1'],
+            ['Item 2'],
+            ['Item 3'],
+            ['Item 4']
+        ]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Template');
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([wbout], { type: 'application/octet-stream' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'import-template.xlsx';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     window.addEventListener('resize', () => draw());
 
-    return { draw, spin, showWinnerModal, hideWinnerModal };
+    return { draw, spin, showWinnerModal, hideWinnerModal, showSaveModal, hideSaveModal, saveHistory, getHistory, importFile, downloadCsvTemplate, downloadExcelTemplate };
 })();
