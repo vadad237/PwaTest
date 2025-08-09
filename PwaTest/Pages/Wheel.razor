@@ -127,7 +127,10 @@
                 {
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         @set.Label
-                        <button class="btn btn-sm btn-primary" @onclick="() => LoadSavedSet(set)">Load</button>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-sm btn-primary" @onclick="() => LoadSavedSet(set)">Load</button>
+                            <button type="button" class="btn-close" aria-label="Remove" @onclick="() => DeleteSavedSet(set.Id)"></button>
+                        </div>
                     </li>
                 }
             </ul>
@@ -316,8 +319,15 @@
         StateHasChanged();
     }
 
+    private async Task DeleteSavedSet(long id)
+    {
+        await JS.InvokeVoidAsync("wheel.deleteHistory", id);
+        await LoadHistory();
+    }
+
     private class SavedSet
     {
+        [JsonPropertyName("id")] public long Id { get; set; }
         [JsonPropertyName("label")] public string Label { get; set; } = string.Empty;
         [JsonPropertyName("names")] public List<string> Names { get; set; } = new();
     }

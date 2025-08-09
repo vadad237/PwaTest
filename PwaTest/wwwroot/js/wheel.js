@@ -135,9 +135,31 @@ window.wheel = (function () {
             return new Promise((resolve, reject) => {
                 const tx = db.transaction('history', 'readonly');
                 const store = tx.objectStore('history');
-                const request = store.getAll();
-                request.onsuccess = () => { db.close(); resolve(request.result); };
+                const request = store.openCursor();
+                const all = [];
+                request.onsuccess = e => {
+                    const cursor = e.target.result;
+                    if (cursor) {
+                        const value = cursor.value;
+                        all.push({ id: cursor.key, label: value.label, names: value.names });
+                        cursor.continue();
+                    } else {
+                        db.close();
+                        resolve(all);
+                    }
+                };
                 request.onerror = () => { db.close(); reject(request.error); };
+            });
+        });
+    }
+
+    function deleteHistory(id) {
+        return openDb().then(db => {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('history', 'readwrite');
+                tx.objectStore('history').delete(id);
+                tx.oncomplete = () => { db.close(); resolve(); };
+                tx.onerror = () => { db.close(); reject(tx.error); };
             });
         });
     }
@@ -177,5 +199,5 @@ window.wheel = (function () {
 
     window.addEventListener('resize', () => draw());
 
-    return { draw, spin, showWinnerModal, hideWinnerModal, showSaveModal, hideSaveModal, saveHistory, getHistory, downloadCsvTemplate, downloadExcelTemplate };
+    return { draw, spin, showWinnerModal, hideWinnerModal, showSaveModal, hideSaveModal, saveHistory, getHistory, deleteHistory, downloadCsvTemplate, downloadExcelTemplate };
 })();
