@@ -1,17 +1,22 @@
 window.wheel = (function () {
     let angle = 0;
+    let currentNames = [];
 
     function draw(names) {
+        currentNames = names || currentNames;
         const canvas = document.getElementById('wheelCanvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        const radius = canvas.width / 2;
+        const size = Math.min(canvas.parentElement.clientWidth, 300);
+        canvas.width = size;
+        canvas.height = size;
+        const radius = size / 2;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (!names || names.length === 0) return;
-        const arc = 2 * Math.PI / names.length;
-        for (let i = 0; i < names.length; i++) {
+        if (!currentNames || currentNames.length === 0) return;
+        const arc = 2 * Math.PI / currentNames.length;
+        for (let i = 0; i < currentNames.length; i++) {
             ctx.beginPath();
-            ctx.fillStyle = `hsl(${360 * i / names.length},70%,70%)`;
+            ctx.fillStyle = `hsl(${360 * i / currentNames.length},70%,70%)`;
             ctx.moveTo(radius, radius);
             ctx.arc(radius, radius, radius, angle + i * arc, angle + (i + 1) * arc);
             ctx.lineTo(radius, radius);
@@ -22,7 +27,7 @@ window.wheel = (function () {
             ctx.textAlign = 'right';
             ctx.fillStyle = '#000';
             ctx.font = '16px sans-serif';
-            ctx.fillText(names[i], radius - 10, 10);
+            ctx.fillText(currentNames[i], radius - 10, 10);
             ctx.restore();
         }
         ctx.fillStyle = '#000';
@@ -58,6 +63,8 @@ window.wheel = (function () {
             requestAnimationFrame(frame);
         });
     }
+
+    window.addEventListener('resize', () => draw());
 
     return { draw, spin };
 })();
