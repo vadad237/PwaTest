@@ -88,7 +88,45 @@ window.wheel = (function () {
         }
     }
 
+    function openDb() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('wheelHistory', 1);
+            request.onupgradeneeded = () => {
+                const db = request.result;
+                if (!db.objectStoreNames.contains('history')) {
+                    db.createObjectStore('history', { autoIncrement: true });
+                }
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    function saveHistory(names) {
+        if (!names || names.length === 0) return Promise.resolve();
+        return openDb().then(db => {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('history', 'readwrite');
+                tx.objectStore('history').add({ names, savedAt: new Date() });
+                tx.oncomplete = () => { db.close(); resolve(); };
+                tx.onerror = () => { db.close(); reject(tx.error); };
+            });
+        });
+    }
+
+    function getHistory() {
+        return openDb().then(db => {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('history', 'readonly');
+                const store = tx.objectStore('history');
+                const request = store.getAll();
+                request.onsuccess = () => { db.close(); resolve(request.result); };
+                request.onerror = () => { db.close(); reject(request.error); };
+            });
+        });
+    }
+
     window.addEventListener('resize', () => draw());
 
-    return { draw, spin, showWinnerModal, hideWinnerModal };
+    return { draw, spin, showWinnerModal, hideWinnerModal, saveHistory, getHistory };
 })();
