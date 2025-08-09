@@ -63,7 +63,7 @@
 
 @code {
     private string? newStudent;
-    private List<string> students = new();
+    private List<string> students = new() { "Item 1", "Item 2", "Item 3", "Item 4" };
     private string? winner;
 
     [Inject] private IJSRuntime JS { get; set; } = default!;
