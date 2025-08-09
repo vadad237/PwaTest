@@ -67,7 +67,23 @@ window.wheel = (function () {
         });
     }
 
+    function showWinnerModal() {
+        const modalEl = document.getElementById('winnerModal');
+        if (!modalEl) return;
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+
+    function hideWinnerModal() {
+        const modalEl = document.getElementById('winnerModal');
+        if (!modalEl) return;
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) {
+            modal.hide();
+        }
+    }
+
     window.addEventListener('resize', () => draw());
 
-    return { draw, spin };
+    return { draw, spin, showWinnerModal, hideWinnerModal };
 })();
