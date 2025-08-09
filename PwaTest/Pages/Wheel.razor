@@ -1,0 +1,129 @@
+@page "/wheel"
+
+<PageTitle>Wheel of Luck</PageTitle>
+
+<h1>Wheel of Luck</h1>
+
+<div class="input-group mb-3">
+    <input class="form-control" @bind="newStudent" @onkeydown="HandleKeyDown" placeholder="Student name" />
+    <button class="btn btn-primary" @onclick="AddStudent">Add</button>
+</div>
+
+<div class="d-flex flex-column flex-md-row mt-3 align-items-start">
+    <div class="d-flex flex-column align-items-center flex-shrink-0">
+        <canvas id="wheelCanvas" width="300" height="300"></canvas>
+        <button class="btn btn-success mt-3" @onclick="Spin">Spin</button>
+
+        @if (!string.IsNullOrEmpty(winner))
+        {
+            <p class="mt-3"><strong>Winner: @winner</strong></p>
+        }
+    </div>
+
+    @if (students.Count > 0)
+    {
+        <ul class="list-group ms-md-3 mt-3 mt-md-0 w-100">
+            @for (int i = 0; i < students.Count; i++)
+            {
+                var index = i;
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    @students[index]
+                    <button type="button" class="btn-close" aria-label="Remove" @onclick="() => RemoveStudent(index)"></button>
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+<div class="modal fade" id="winnerModal" tabindex="-1" aria-labelledby="winnerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="winnerModalLabel">Winner</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @winner
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" @onclick="RemoveWinner">Remove</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? newStudent;
+    private List<string> students = new();
+    private string? winner;
+
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("wheel.draw", students, true);
+        }
+    }
+
+    private async Task AddStudent()
+    {
+        if (!string.IsNullOrWhiteSpace(newStudent))
+        {
+            students.Add(newStudent.Trim());
+            newStudent = string.Empty;
+            winner = null;
+            await JS.InvokeVoidAsync("wheel.draw", students, true);
+            StateHasChanged();
+        }
+    }
+
+    private async Task RemoveStudent(int index)
+    {
+        if (index >= 0 && index < students.Count)
+        {
+            students.RemoveAt(index);
+            winner = null;
+            await JS.InvokeVoidAsync("wheel.draw", students, true);
+            StateHasChanged();
+        }
+    }
+
+    private async Task Spin()
+    {
+        if (students.Count == 0)
+        {
+            return;
+        }
+
+        winner = await JS.InvokeAsync<string>("wheel.spin", students);
+        StateHasChanged();
+        await JS.InvokeVoidAsync("wheel.showWinnerModal");
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await AddStudent();
+        }
+    }
+
+    private async Task RemoveWinner()
+    {
+        if (string.IsNullOrEmpty(winner))
+        {
+            return;
+        }
+
+        var index = students.IndexOf(winner);
+        if (index >= 0)
+        {
+            await RemoveStudent(index);
+        }
+
+        await JS.InvokeVoidAsync("wheel.hideWinnerModal");
+    }
+}
