@@ -1,0 +1,7 @@
+#wheelCanvas {
+    border: 2px solid #333;
+    border-radius: 50%;
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+}
