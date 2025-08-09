@@ -142,42 +142,6 @@ window.wheel = (function () {
         });
     }
 
-    function importFile(dotNetHelper) {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel';
-        input.onchange = e => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = ev => {
-                let names = [];
-                if (file.name.toLowerCase().endsWith('.csv')) {
-                    const text = ev.target.result;
-                    names = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
-                } else if (typeof XLSX !== 'undefined') {
-                    const data = new Uint8Array(ev.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                    names = rows.map(r => r[0]).filter(Boolean);
-                }
-
-                if (names.length && names[0].toLowerCase() === 'name') {
-                    names.shift();
-                }
-
-                dotNetHelper.invokeMethodAsync('ReceiveImported', names);
-                input.remove();
-            };
-            if (file.name.toLowerCase().endsWith('.csv')) {
-                reader.readAsText(file);
-            } else {
-                reader.readAsArrayBuffer(file);
-            }
-        };
-        input.click();
-    }
 
     function downloadCsvTemplate() {
         const content = ['Name', 'Item 1', 'Item 2', 'Item 3', 'Item 4'].join('\n');
@@ -213,5 +177,5 @@ window.wheel = (function () {
 
     window.addEventListener('resize', () => draw());
 
-    return { draw, spin, showWinnerModal, hideWinnerModal, showSaveModal, hideSaveModal, saveHistory, getHistory, importFile, downloadCsvTemplate, downloadExcelTemplate };
+    return { draw, spin, showWinnerModal, hideWinnerModal, showSaveModal, hideSaveModal, saveHistory, getHistory, downloadCsvTemplate, downloadExcelTemplate };
 })();

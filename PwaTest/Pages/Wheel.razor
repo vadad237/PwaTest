@@ -3,8 +3,10 @@
 @using System.Text.Json.Serialization
 @using System.Linq
 @using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
-@implements IDisposable
+@using ExcelDataReader
+@using System.Text
 
 <PageTitle>Wheel of Luck</PageTitle>
 
@@ -22,7 +24,10 @@
             <button class="btn btn-success" @onclick="Spin">Spin</button>
             <button class="btn btn-secondary" @onclick="SaveCurrentStudents">Save</button>
             <div class="btn-group">
-                <button class="btn btn-info" @onclick="ImportFromFile">Import</button>
+                <label class="btn btn-info mb-0">
+                    Import
+                    <InputFile OnChange="HandleFileSelected" accept=".csv,.xlsx,.xls" class="d-none" />
+                </label>
                 <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
                     <span class="visually-hidden">Toggle Dropdown</span>
                 </button>
@@ -112,7 +117,6 @@
     private string? winner;
     private string? saveLabel;
     private List<SavedSet> savedSets = new();
-    private DotNetObjectReference<Wheel>? objRef;
 
     private RenderFragment SavedSetsSection => @<div>
         <h5>Saved Sets</h5>
@@ -227,19 +231,50 @@
         await JS.InvokeVoidAsync("wheel.downloadExcelTemplate");
     }
 
-    private async Task ImportFromFile()
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
-        objRef ??= DotNetObjectReference.Create(this);
-        await JS.InvokeVoidAsync("wheel.importFile", objRef);
-    }
+        var file = e.File;
+        using var stream = file.OpenReadStream(4 * 1024 * 1024);
+        var names = new List<string>();
 
-    [JSInvokable]
-    public async Task ReceiveImported(string[] names)
-    {
-        students = names.ToList();
-        winner = null;
-        await JS.InvokeVoidAsync("wheel.draw", students, true);
-        StateHasChanged();
+        if (file.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+        {
+            using var reader = new StreamReader(stream);
+            while (!reader.EndOfStream)
+            {
+                var line = await reader.ReadLineAsync();
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                var name = line.Trim();
+                if (string.Equals(name, "name", StringComparison.OrdinalIgnoreCase)) continue;
+                names.Add(name);
+            }
+        }
+        else
+        {
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            ms.Position = 0;
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            using var reader = ExcelReaderFactory.CreateReader(ms);
+            do
+            {
+                while (reader.Read())
+                {
+                    var value = reader.GetValue(0)?.ToString();
+                    if (string.IsNullOrWhiteSpace(value)) continue;
+                    if (string.Equals(value.Trim(), "name", StringComparison.OrdinalIgnoreCase)) continue;
+                    names.Add(value.Trim());
+                }
+            } while (reader.NextResult());
+        }
+
+        if (names.Count > 0)
+        {
+            students = names;
+            winner = null;
+            await JS.InvokeVoidAsync("wheel.draw", students, true);
+            StateHasChanged();
+        }
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
@@ -279,11 +314,6 @@
         winner = null;
         await JS.InvokeVoidAsync("wheel.draw", students, true);
         StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        objRef?.Dispose();
     }
 
     private class SavedSet
