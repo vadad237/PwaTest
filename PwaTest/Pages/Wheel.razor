@@ -242,13 +242,17 @@
 
         if (file.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
         {
-            using var reader = new StreamReader(stream);
-            while (!reader.EndOfStream)
+            using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+            string? line;
+            while ((line = await reader.ReadLineAsync()) != null)
             {
-                var line = await reader.ReadLineAsync();
-                if (string.IsNullOrWhiteSpace(line)) continue;
-                var name = line.Trim();
-                if (string.Equals(name, "name", StringComparison.OrdinalIgnoreCase)) continue;
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                var name = line.Trim().Trim('"');
+                if (string.Equals(name, "name", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
                 names.Add(name);
             }
         }
